@@ -335,7 +335,7 @@ const ReportsScreen: React.FC<ReportsScreenProps> = ({ navigation }) => {
 
                 {/* Print Button */}
                 <TouchableOpacity
-                  style={styles.bottomPrintBtn}
+                  style={[styles.bottomPrintBtn, isPrinting && styles.disabledBtn]}
                   onPress={handlePrint}
                   disabled={isPrinting}
                 >
@@ -379,14 +379,17 @@ const ReportsScreen: React.FC<ReportsScreenProps> = ({ navigation }) => {
 
           <View style={{ padding: 16, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#eee' }}>
             <TouchableOpacity
-              style={[styles.bottomPrintBtn, { justifyContent: 'center' }]}
+              style={[styles.bottomPrintBtn, { justifyContent: 'center' }, isPrinting && styles.disabledBtn]}
               onPress={() => {
                 setPreviewVisible(false);
                 handlePrint();
               }}
+              disabled={isPrinting}
             >
               <Icon name="printer" size={20} color="#fff" />
-              <Text style={[styles.bottomPrintBtnText, { fontSize: 16 }]}>Print Report</Text>
+              <Text style={[styles.bottomPrintBtnText, { fontSize: 16 }]}>
+                {isPrinting ? 'Processing...' : 'Print Report'}
+              </Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -442,7 +445,7 @@ const ReportsScreen: React.FC<ReportsScreenProps> = ({ navigation }) => {
                 }}
                 disabled={isEnablingBluetooth}
               >
-                <Text style={styles.allowText}>
+                <Text style={styles.bluetoothDialogButtonTextAllow}>
                   {isEnablingBluetooth ? 'Enabling...' : 'Allow'}
                 </Text>
               </TouchableOpacity>
@@ -605,7 +608,10 @@ const styles = StyleSheet.create({
   },
   bottomPrintBtnText: {
     fontWeight: '600',
-    color:"#fff"
+    color: "#fff"
+  },
+  disabledBtn: {
+    opacity: 0.5,
   },
 
   // Custom Bluetooth Modal Styles

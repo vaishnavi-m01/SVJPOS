@@ -214,6 +214,7 @@ const ItemsScreen: React.FC<ItemsScreenProps> = ({ navigation }) => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoryFilterList}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
             <TouchableOpacity
               style={[
@@ -268,6 +269,7 @@ const ItemsScreen: React.FC<ItemsScreenProps> = ({ navigation }) => {
         keyExtractor={item => item.id}
         contentContainerStyle={[styles.listContent, { paddingBottom: 100 }]}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={loadData} />
         }
@@ -408,7 +410,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     color: COLORS.primary,
-  
+
   },
   lowStockBadge: {
     backgroundColor: COLORS.danger + '20',

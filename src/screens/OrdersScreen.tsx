@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
+  ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -31,13 +33,13 @@ const COL_QTY = 50;
 const COL_RATE = 65;
 const COL_AMOUNT = 75;
 
-/* ================= COMPONENT ================= */
-
-const OrdersScreen: React.FC<OrdersScreenProps> = () => {
+const OrdersScreen: React.FC<OrdersScreenProps> = ({ navigation }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
-  const [historyFilter, setHistoryFilter] = useState<'TODAY' | 'ALL'>('TODAY');
+  const [historyFilter, setHistoryFilter] = useState<'TODAY' | 'WEEK' | 'MONTH' | 'ALL'>('TODAY');
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [displayedOrders, setDisplayedOrders] = useState<Order[]>([]);
 
   /* ================= LOAD ORDERS ================= */
 
@@ -62,21 +64,44 @@ const OrdersScreen: React.FC<OrdersScreenProps> = () => {
   //   );
   // }
 
-  const filteredOrders = useMemo(() => {
-    if (historyFilter === 'ALL') {
-      return [...orders].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
-    }
+  const getOrderCounts = useMemo(() => {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfWeek = new Date(now.setDate(now.getDate() - 7)).getTime();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
-    // TODAY filter
-    const today = new Date().toDateString();
+    return {
+      today: orders.filter(o => new Date(o.date).getTime() >= startOfDay).length,
+      week: orders.filter(o => new Date(o.date).getTime() >= startOfWeek).length,
+      month: orders.filter(o => new Date(o.date).getTime() >= startOfMonth).length,
+      all: orders.length,
+    };
+  }, [orders]);
 
-    return orders
-      .filter(o => new Date(o.date).toDateString() === today)
-      .sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
+  useEffect(() => {
+    setIsFiltering(true);
+
+    // Simulate a small delay for feedback
+    const timer = setTimeout(() => {
+      let result = [...orders];
+      const now = new Date();
+
+      if (historyFilter === 'TODAY') {
+        const today = new Date().toDateString();
+        result = orders.filter(o => new Date(o.date).toDateString() === today);
+      } else if (historyFilter === 'WEEK') {
+        const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7).getTime();
+        result = orders.filter(o => new Date(o.date).getTime() >= weekAgo);
+      } else if (historyFilter === 'MONTH') {
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+        result = orders.filter(o => new Date(o.date).getTime() >= monthStart);
+      }
+
+      setDisplayedOrders(result.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      setIsFiltering(false);
+    }, 400);
+
+    return () => clearTimeout(timer);
   }, [orders, historyFilter]);
 
 
@@ -208,70 +233,71 @@ const OrdersScreen: React.FC<OrdersScreenProps> = () => {
 
       {/* FILTER SECTION */}
       <View style={styles.filterSection}>
-        <View style={styles.filterWrapper}>
-          <TouchableOpacity
-            style={[
-              styles.filterTab,
-              historyFilter === 'TODAY' && styles.filterTabActive,
-            ]}
-            onPress={() => setHistoryFilter('TODAY')}
-            activeOpacity={0.7}
-          >
-            <Icon
-              name="calendar-today"
-              size={18}
-              color={historyFilter === 'TODAY' ? '#FFF' : COLORS.textSecondary}
-              style={{ marginRight: 6 }}
-            />
-            <Text
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterContainer}
+          keyboardShouldPersistTaps="handled"
+        >
+          {[
+            { id: 'TODAY', label: 'Today', count: getOrderCounts.today },
+            { id: 'WEEK', label: 'Weekly', count: getOrderCounts.week },
+            { id: 'MONTH', label: 'Monthly', count: getOrderCounts.month },
+            { id: 'ALL', label: 'All History', count: getOrderCounts.all },
+          ].map((tab) => (
+            <TouchableOpacity
+              key={tab.id}
               style={[
-                styles.filterLabel,
-                historyFilter === 'TODAY' && styles.filterLabelActive,
+                styles.filterTab,
+                historyFilter === tab.id && styles.filterTabActive,
               ]}
+              onPress={() => setHistoryFilter(tab.id as any)}
+              activeOpacity={0.7}
+              disabled={isFiltering}
             >
-              Today
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.filterTab,
-              historyFilter === 'ALL' && styles.filterTabActive,
-            ]}
-            onPress={() => setHistoryFilter('ALL')}
-            activeOpacity={0.7}
-          >
-            <Icon
-              name="history"
-              size={18}
-              color={historyFilter === 'ALL' ? '#FFF' : COLORS.textSecondary}
-              style={{ marginRight: 6 }}
-            />
-            <Text
-              style={[
-                styles.filterLabel,
-                historyFilter === 'ALL' && styles.filterLabelActive,
-              ]}
-            >
-              All History
-            </Text>
-          </TouchableOpacity>
-        </View>
+              <Text
+                style={[
+                  styles.filterLabel,
+                  historyFilter === tab.id && styles.filterLabelActive,
+                ]}
+              >
+                {tab.label}
+              </Text>
+              <View style={[
+                styles.countBadge,
+                historyFilter === tab.id ? styles.countBadgeActive : styles.countBadgeInactive
+              ]}>
+                <Text style={[
+                  styles.countText,
+                  historyFilter === tab.id && styles.countTextActive
+                ]}>
+                  {tab.count}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
-      {/* ORDERS LIST */}
-      <FlatList
-        data={filteredOrders}
-        renderItem={renderOrderItem}
-        keyExtractor={i => i.id!}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={renderEmptyState}
-        refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={loadOrders} />
-        }
-        scrollEnabled={true}
-        showsVerticalScrollIndicator={true}
-      />
+      {isFiltering ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          {/* <Text style={styles.loaderText}>loading...</Text> */}
+        </View>
+      ) : (
+        <FlatList
+          data={displayedOrders}
+          renderItem={renderOrderItem}
+          keyExtractor={i => i.id!}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={renderEmptyState}
+          refreshControl={
+            <RefreshControl refreshing={loading} onRefresh={loadOrders} />
+          }
+          scrollEnabled={true}
+          showsVerticalScrollIndicator={true}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -292,14 +318,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
-  filterWrapper: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.surface,
-    borderRadius: 28,
-    padding: 6,
-    ...SHADOWS.small,
-    gap: 4,
-  },
 
   filterTab: {
     flex: 1,
@@ -313,7 +331,6 @@ const styles = StyleSheet.create({
 
   filterTabActive: {
     backgroundColor: COLORS.primary,
-    ...SHADOWS.small,
   },
 
   filterLabel: {
@@ -324,6 +341,53 @@ const styles = StyleSheet.create({
 
   filterLabelActive: {
     color: '#FFF',
+  },
+
+  countBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 6,
+    minWidth: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  countBadgeInactive: {
+    backgroundColor: COLORS.border + '50',
+  },
+
+  countBadgeActive: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+
+  countText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+
+  countTextActive: {
+    color: '#FFF',
+  },
+
+  filterContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingRight: SIZES.medium,
+  },
+
+  loaderContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+
+  loaderText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
   },
 
   listContent: {
@@ -532,3 +596,4 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
   },
 });
+

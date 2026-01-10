@@ -123,8 +123,8 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
     );
 
     if (item) {
-      selectItem(item);
-      ToastAndroid.show('Item found: ' + item.name, ToastAndroid.SHORT);
+      handleAddToCart(item);
+      ToastAndroid.show('Item added: ' + item.name, ToastAndroid.SHORT);
     } else {
       Alert.alert('Not Found', 'No item found with this EAN barcode');
     }
@@ -147,10 +147,30 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
   };
 
 
-  const selectItem = (item: Item) => {
-    setSelectedItem(item);
-    setQuantity('1');
-    setRate(item.price.toString());
+  const handleAddToCart = (item: Item, qty: number = 1, price?: number) => {
+    if (!item) return;
+
+    const finalPrice = price ?? item.price;
+    if (qty <= 0) {
+      Alert.alert('Error', 'Please enter a valid quantity');
+      return;
+    }
+
+    const existingIndex = cart.findIndex(i => i.id === item.id);
+    if (existingIndex >= 0) {
+      const newCart = [...cart];
+      newCart[existingIndex].quantity += qty;
+      setCart(newCart);
+    } else {
+      setCart([{ ...item, quantity: qty, price: finalPrice }, ...cart]);
+    }
+
+    // Reset selected item if it was this item
+    if (selectedItem?.id === item.id) {
+      setSelectedItem(null);
+      setQuantity('1');
+      setRate('0');
+    }
   };
 
   const addToCart = () => {
@@ -164,33 +184,7 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
       return;
     }
 
-    // // 🔹 Check stock
-    // const stock = selectedItem.stock ?? 0; // default 0 if undefined
-    // if (qty > stock) {
-    //   Alert.alert('Out of Stock', `Only ${stock} items available in stock`);
-    //   return;
-    // }
-
-    // 🔹 If item already in cart
-    const existingIndex = cart.findIndex(item => item.id === selectedItem.id);
-    if (existingIndex >= 0) {
-      const newCart = [...cart];
-      const newQty = newCart[existingIndex].quantity + qty;
-
-      // if (newQty > stock) {
-      //   Alert.alert('Out of Stock', `Cannot add ${qty} more. Only ${stock - newCart[existingIndex].quantity} left`);
-      //   return;
-      // }
-
-      newCart[existingIndex].quantity = newQty;
-      setCart(newCart);
-    } else {
-      setCart([{ ...selectedItem, quantity: qty, price }, ...cart]);
-    }
-
-    setSelectedItem(null);
-    setQuantity('1');
-    setRate('0');
+    handleAddToCart(selectedItem, qty, price);
   };
 
 
@@ -432,8 +426,7 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
           'Printer Disconnected',
           'Could not connect to printer. Please turn it ON and try again.',
           [
-            { text: 'OK', style: 'default' }, // Simple OK as requested
-            // Optional: User can still go to settings if they really want, but not forced
+            { text: 'OK', style: 'default' }, 
             {
               text: 'Settings',
               onPress: () => navigation.navigate('Printer'),
@@ -630,7 +623,12 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
         onBack={() => navigation.goBack()}
       />
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 50 }}>
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 50 }}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Search */}
         <Card style={styles.searchCard}>
           <View style={styles.searchRow}>
@@ -668,7 +666,7 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
                     key={item.id}
                     style={styles.searchResultItem}
                     onPress={() => {
-                      selectItem(item);
+                      handleAddToCart(item);
                       setSearchQuery('');
                     }}
                   >
@@ -690,6 +688,7 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.categoryFilterList}
               style={{ marginTop: 12 }}
+              keyboardShouldPersistTaps="handled"
             >
               <TouchableOpacity
                 style={[
@@ -729,12 +728,17 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
                   {selectedCategoryId ? 'Items' : 'Popular Items'}
                 </Text>
               </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 4 }}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingVertical: 4 }}
+                keyboardShouldPersistTaps="handled"
+              >
                 {items
                   .filter(i => !selectedCategoryId || i.categoryId === selectedCategoryId)
                   .slice(0, 4)
                   .map(item => (
-                    <TouchableOpacity key={item.id} style={styles.quickItem} onPress={() => selectItem(item)}>
+                    <TouchableOpacity key={item.id} style={styles.quickItem} onPress={() => handleAddToCart(item)}>
                       <Text style={styles.quickItemText}>{item.name}</Text>
                     </TouchableOpacity>
                   ))}
@@ -774,7 +778,11 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
               <Icon name="close" size={24} color={COLORS.textSecondary} />
             </TouchableOpacity>
           </View>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.sheetGrid}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.sheetGrid}
+            keyboardShouldPersistTaps="handled"
+          >
             {items
               .filter(i => !selectedCategoryId || i.categoryId === selectedCategoryId)
               .map(item => (
@@ -782,7 +790,7 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
                   key={item.id}
                   style={styles.sheetItem}
                   onPress={() => {
-                    selectItem(item);
+                    handleAddToCart(item);
                     rbSheetRef.current?.close();
                   }}
                 >

@@ -78,12 +78,12 @@ export function buildReceipt(order: Order, printerSize: PrinterSize,
         // DEFAULT HEADER
         r += center + 'NO.21, SVJPOS,\n';
         r += center + 'SURANDAI,\n';
-        r += center + 'Ph:6385532772,9444391913\n\n';
+        r += center + 'Ph:6385532772,9444391913\n';
     }
 
     // r += center + b_on + '======== PAY TM BILL ========\n' + b_off;
     // r += left;
-    r += center + b_on + '======== PAY TM BILL ========\n' + b_off + left;
+    r += center + b_on + '======== PAY TM BILL ========\n' + b_off + left + '\n';
 
     // Bill Info
 
