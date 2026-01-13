@@ -87,6 +87,10 @@ const ItemsScreen: React.FC<ItemsScreenProps> = ({ navigation }) => {
   };
 
   const handleAddItem = () => {
+    if (items.length >= 10) {
+      Alert.alert('Limit Reached', 'Only 10 items allowed');
+      return;
+    }
     navigation.navigate('ItemForm', {});
   };
 

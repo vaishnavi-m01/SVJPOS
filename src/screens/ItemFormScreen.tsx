@@ -211,6 +211,12 @@ const ItemFormScreen: React.FC<ItemFormScreenProps> = ({ navigation, route }) =>
                 ToastAndroid.show('Item updated successfully', ToastAndroid.SHORT);
             } else {
                 console.log('Adding New Item');
+                const items = await StorageService.getItems();
+                if (items.length >= 10) {
+                    Alert.alert('Limit Reached', 'Only 10 items allowed');
+                    setLoading(false);
+                    return;
+                }
                 await StorageService.addItem(itemData);
                 setIsDuplicateCode(false);
                 ToastAndroid.show('Item added successfully', ToastAndroid.SHORT);

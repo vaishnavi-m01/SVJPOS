@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Camera } from 'react-native-camera-kit';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, SIZES } from '../styles/theme';
 import Header from '../components/Header';
@@ -68,10 +69,12 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
   // GST Summary State
   const [taxes, setTaxes] = useState<any[]>([]);
 
-  useEffect(() => {
-    loadData();
-    loadTaxes();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+      loadTaxes();
+    }, [])
+  );
 
   const loadTaxes = async () => {
     const taxesData = await StorageService.getTaxes();
@@ -424,9 +427,9 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
 
         Alert.alert(
           'Printer Disconnected',
-          'Could not connect to printer. Please turn it ON and try again.',
+          'Could Not Connect to the Printer. Please Turn It On and Try Again.',
           [
-            { text: 'OK', style: 'default' }, 
+            { text: 'OK', style: 'default' },
             {
               text: 'Settings',
               onPress: () => navigation.navigate('Printer'),
@@ -462,26 +465,26 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
         gstSummary,
       };
 
-      console.log('🧾 Order prepared:', order);
+      console.log(' Order prepared:', order);
 
       // 7️⃣ Print receipt
-      console.log('🖨️ Sending print command...');
+      console.log(' Sending print command...');
       const printed = await PrinterService.printReceipt({
         ...order,
         id: '',
       });
-      console.log('🖨️ Print result:', printed);
+      console.log(' Print result:', printed);
 
       if (printed) {
         // 8️⃣ Save order only after successful print
-        console.log('💾 Saving order...');
+        console.log(' Saving order...');
         await StorageService.saveOrder(order);
-        console.log('✅ Order saved successfully');
+        console.log(' Order saved successfully');
 
         ToastAndroid.show('Order printed and saved!', ToastAndroid.SHORT);
 
         // 9️⃣ Reset UI
-        console.log('🔄 Resetting screen state');
+        console.log(' Resetting screen state');
         setCart([]);
         setSelectedItem(null);
         setSearchQuery('');
@@ -493,9 +496,9 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
         // Short delay after print to ensure buffer is cleared before we return "success"
         await new Promise(resolve => setTimeout(() => resolve(true), 500));
 
-        console.log('🎉 handlePrint completed successfully');
+        console.log(' handlePrint completed successfully');
       } else {
-        console.log('❌ Print failed');
+        console.log(' Print failed');
         Alert.alert('Print Error', 'Failed to print receipt. Please check connection and try again.');
       }
     } catch (e: any) {
@@ -734,7 +737,8 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
                 contentContainerStyle={{ paddingVertical: 4 }}
                 keyboardShouldPersistTaps="handled"
               >
-                {items
+                {[...items]
+                  .reverse()
                   .filter(i => !selectedCategoryId || i.categoryId === selectedCategoryId)
                   .slice(0, 4)
                   .map(item => (
@@ -783,7 +787,8 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
             contentContainerStyle={styles.sheetGrid}
             keyboardShouldPersistTaps="handled"
           >
-            {items
+            {[...items]
+              .reverse()
               .filter(i => !selectedCategoryId || i.categoryId === selectedCategoryId)
               .map(item => (
                 <TouchableOpacity
@@ -871,12 +876,10 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
                       {/* Rate */}
                       <View style={{ flex: 1, minHeight: 20, justifyContent: 'center' }}>
                         <Text
-                          style={[
-                            styles.cartItemNote,
-                            { fontFamily: Platform.OS === 'android' ? 'monospace' : 'Courier' },
-                          ]}
+                          style={styles.cartItemNote}
                           numberOfLines={1}
                           adjustsFontSizeToFit
+                          minimumFontScale={0.8}
                         >
                           Rate: {formatCurrency(item.rate ?? item.price)}
                         </Text>
@@ -885,12 +888,10 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
                       {/* MRP */}
                       <View style={{ flex: 1, minHeight: 20, justifyContent: 'center', marginLeft: 12 }}>
                         <Text
-                          style={[
-                            styles.cartItemNote,
-                            { fontFamily: Platform.OS === 'android' ? 'monospace' : 'Courier' },
-                          ]}
+                          style={styles.cartItemNote}
                           numberOfLines={1}
                           adjustsFontSizeToFit
+                          minimumFontScale={0.8}
                         >
                           MRP: {formatCurrency(item.mrp ?? item.price)}
                         </Text>

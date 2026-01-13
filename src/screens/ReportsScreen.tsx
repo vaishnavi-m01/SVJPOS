@@ -210,13 +210,15 @@ const ReportsScreen: React.FC<ReportsScreenProps> = ({ navigation }) => {
   };
 
   const StatCard = ({ title, value, icon, color }: { title: string, value: string, icon: string, color: string }) => (
-    <Card style={styles.statCard}>
-      <View style={[styles.statIcon, { backgroundColor: color + '20' }]}>
-        <Icon name={icon} size={24} color={color} />
+    <View style={styles.statCard}>
+      <View style={[styles.statIconContainer, { backgroundColor: color + '15' }]}>
+        <Icon name={icon} size={20} color={color} />
       </View>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statTitle}>{title}</Text>
-    </Card>
+      <View style={styles.statInfo}>
+        <Text style={styles.statLabel}>{title}</Text>
+        <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
+      </View>
+    </View>
   );
 
   return (
@@ -224,72 +226,86 @@ const ReportsScreen: React.FC<ReportsScreenProps> = ({ navigation }) => {
       <Header
         title="Reports"
         icon="chart-bar"
-        subtitle="Sales Analytics"
+        subtitle={range === 'day' ? "Today's Analytics" : range === 'week' ? "This Week's Analytics" : "This Month's Analytics"}
+        rightComponent={
+          <View style={styles.miniFilterContainer}>
+            {(['day', 'week', 'month'] as const).map((item) => (
+              <TouchableOpacity
+                key={item}
+                style={[
+                  styles.miniFilterTab,
+                  range === item && styles.activeMiniFilterTab,
+                ]}
+                onPress={() => setRange(item)}>
+                <Text
+                  style={[
+                    styles.miniFilterText,
+                    range === item && styles.activeMiniFilterText,
+                  ]}>
+                  {item.charAt(0).toUpperCase() + item.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        }
       />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 10 }}>
 
         {/* Payment Filter */}
-        <View style={styles.filterContainer}>
-          {['all', 'cash', 'card', 'upi', 'other'].map((item) => (
-            <TouchableOpacity
-              key={item}
-              style={[
-                styles.filterTab,
-                paymentFilter === item && styles.activeFilterTab,
-              ]}
-              onPress={() => setPaymentFilter(item)}>
-              <Text
+        <View style={styles.paymentFilterWrapper}>
+          <Text style={styles.paymentFilterLabel}>Payment Mode:</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.paymentFilterList}
+          >
+            {['all', 'cash', 'card', 'upi', 'other'].map((item) => (
+              <TouchableOpacity
+                key={item}
                 style={[
-                  styles.filterText,
-                  paymentFilter === item && styles.activeFilterText,
-                ]}>
-                {item.charAt(0).toUpperCase() + item.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                  styles.paymentChip,
+                  paymentFilter === item && styles.activePaymentChip,
+                ]}
+                onPress={() => setPaymentFilter(item)}>
+                <Text
+                  style={[
+                    styles.paymentChipText,
+                    paymentFilter === item && styles.activePaymentChipText,
+                  ]}>
+                  {item.charAt(0).toUpperCase() + item.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
 
         {/* Overview Cards */}
-        <View style={styles.statsRow}>
+        <View style={styles.statsGrid}>
           <StatCard
             title="Total Sales"
             value={formatCurrency(stats.totalSales)}
             icon="cash-multiple"
             color={COLORS.primary}
           />
-          <StatCard
-            title="Orders"
-            value={stats.totalOrders.toString()}
-            icon="receipt"
-            color={COLORS.accent}
-          />
+          <View style={styles.statsRow}>
+            <StatCard
+              title="Orders"
+              value={stats.totalOrders.toString()}
+              icon="receipt"
+              color={COLORS.accent}
+            />
+            <StatCard
+              title="Avg Order"
+              value={formatCurrency(stats.averageOrder)}
+              icon="chart-line"
+              color="#10B981"
+            />
+          </View>
         </View>
 
         {/* Product Wise Sales */}
         <View style={styles.section}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <Text style={styles.sectionTitle}>Product Wise Sales</Text>
-            {/* Date Filter moved here */}
-            <View style={styles.miniFilterContainer}>
-              {['day', 'week', 'month'].map((item) => (
-                <TouchableOpacity
-                  key={item}
-                  style={[
-                    styles.miniFilterTab,
-                    range === item && styles.activeMiniFilterTab,
-                  ]}
-                  onPress={() => setRange(item as any)}>
-                  <Text
-                    style={[
-                      styles.miniFilterText,
-                      range === item && styles.activeMiniFilterText,
-                    ]}>
-                    {item.charAt(0).toUpperCase() + item.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+          <Text style={styles.sectionTitle}>Product Performance</Text>
 
           <Card style={styles.chartCard}>
             {/* Table Header */}
@@ -305,15 +321,14 @@ const ReportsScreen: React.FC<ReportsScreenProps> = ({ navigation }) => {
 
             {productSales.length > 0 ? (
               productSales.map((item, index) => (
-                <View key={index} style={styles.productRow}>
+                <View key={index} style={[styles.productRow, index === productSales.length - 1 && { borderBottomWidth: 0 }]}>
                   <View style={styles.productInfo}>
                     <Text style={styles.productName}>{item.name}</Text>
                   </View>
-                  <View style={[styles.productStats, { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }]}>
+                  <View style={styles.productStats}>
                     <Text style={styles.productQty}>{item.qty}</Text>
-                    <Text style={[styles.productTotal, { textAlign: 'right' }]}>{formatCurrency(item.total)}</Text>
+                    <Text style={styles.productTotal}>{formatCurrency(item.total)}</Text>
                   </View>
-
                 </View>
               ))
             ) : (
@@ -468,27 +483,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: SIZES.large,
   },
-  filterContainer: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.surface,
-    padding: 4,
-    borderRadius: SIZES.radius,
-    marginBottom: SIZES.large,
-  },
-  filterTab: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: 'center',
-    borderRadius: SIZES.radius - 4,
-  },
-  activeFilterTab: {
-    backgroundColor: COLORS.primary,
-  },
-  filterText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
   activeFilterText: {
     color: '#fff',
   },
@@ -517,34 +511,78 @@ const styles = StyleSheet.create({
   activeMiniFilterText: {
     color: '#fff',
   },
-  statsRow: {
-    flexDirection: 'row',
+  paymentFilterWrapper: {
+    marginBottom: SIZES.large,
+  },
+  paymentFilterLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  paymentFilterList: {
+    gap: 8,
+    paddingRight: 10,
+  },
+  paymentChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  activePaymentChip: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  paymentChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  activePaymentChipText: {
+    color: '#fff',
+  },
+  statsGrid: {
     gap: 12,
     marginBottom: 12,
   },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
   statCard: {
     flex: 1,
-    alignItems: 'flex-start',
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
     padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    ...SHADOWS.small,
   },
-  statIcon: {
+  statIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginRight: 12,
   },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: 4,
+  statInfo: {
+    flex: 1,
   },
-  statTitle: {
+  statLabel: {
     fontSize: 12,
     color: COLORS.textSecondary,
-    fontWeight: '500',
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
   },
   section: {
     marginTop: 12,
@@ -554,6 +592,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.textPrimary,
+    marginBottom:8
   },
   chartCard: {
     padding: 16,
@@ -591,7 +630,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   productTotal: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     color: COLORS.primary,
     width: 80,
