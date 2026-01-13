@@ -35,6 +35,7 @@ class StorageService {
 
   async addItem(item: Omit<Item, 'id'>): Promise<boolean> {
     const items = await this.getItems();
+    if (items.length >= 10) return false;
     items.push({ ...item, id: Date.now().toString() });
     return await this.saveItems(items);
   }
