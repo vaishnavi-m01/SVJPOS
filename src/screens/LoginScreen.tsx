@@ -402,6 +402,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                                         <TextInput
                                             style={styles.input}
                                             placeholder="Username"
+                                            placeholderTextColor={COLORS.textSecondary}
                                             value={registerUsername}
                                             onChangeText={handleUsernameChange}
                                             maxLength={30}
@@ -413,6 +414,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                                         <TextInput
                                             style={styles.input}
                                             placeholder="Email"
+                                            placeholderTextColor={COLORS.textSecondary}
                                             value={registerEmail}
                                             onChangeText={handleEmailChange}
                                             keyboardType="email-address"
@@ -465,6 +467,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                                         <TextInput
                                             style={styles.input}
                                             placeholder="Business Name"
+                                            placeholderTextColor={COLORS.textSecondary}
                                             value={businessName}
                                             onChangeText={setBusinessName}
                                             editable={!loading}

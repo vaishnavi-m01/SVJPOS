@@ -143,6 +143,19 @@ const ItemFormScreen: React.FC<ItemFormScreenProps> = ({ navigation, route }) =>
         }
     }, [isEdit, existingItem]);
 
+    const handleAmountChange = (text: string, setter: (val: string) => void, fieldLabel: string) => {
+        if (text === '') {
+            setter('');
+            return;
+        }
+        const val = parseFloat(text);
+        if (!isNaN(val) && val > 20000) {
+            Alert.alert('Limit Exceeded', `${fieldLabel} cannot exceed ₹20,000`);
+            return;
+        }
+        setter(text);
+    };
+
     const handleSave = async () => {
         if (!name || !code || !price) {
             Alert.alert('Error', 'Please fill in all required fields (Name, Code, Price)');
@@ -417,7 +430,7 @@ const ItemFormScreen: React.FC<ItemFormScreenProps> = ({ navigation, route }) =>
                             <TextInput
                                 style={styles.input}
                                 value={mrp}
-                                onChangeText={setMrp}
+                                onChangeText={(text) => handleAmountChange(text, setMrp, 'MRP')}
                                 placeholder="0.00"
                                 placeholderTextColor={COLORS.textSecondary}
                                 keyboardType="numeric"
@@ -449,7 +462,7 @@ const ItemFormScreen: React.FC<ItemFormScreenProps> = ({ navigation, route }) =>
                             <TextInput
                                 style={styles.input}
                                 value={price}
-                                onChangeText={setPrice}
+                                onChangeText={(text) => handleAmountChange(text, setPrice, 'Price')}
                                 placeholder="0.00"
                                 placeholderTextColor={COLORS.textSecondary}
                                 keyboardType="numeric"

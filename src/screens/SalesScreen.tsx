@@ -476,14 +476,14 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
       console.log(' Print result:', printed);
 
       if (printed) {
-        // 8️⃣ Save order only after successful print
+        //  Save order only after successful print
         console.log(' Saving order...');
         await StorageService.saveOrder(order);
         console.log(' Order saved successfully');
 
         ToastAndroid.show('Order printed and saved!', ToastAndroid.SHORT);
 
-        // 9️⃣ Reset UI
+        // 9 Reset UI
         console.log(' Resetting screen state');
         setCart([]);
         setSelectedItem(null);
