@@ -30,32 +30,25 @@ export function buildReceipt(order: Order, printerSize: PrinterSize,
         maxAmtLen = Math.max(maxAmtLen, amount.toFixed(2).length);
     });
 
-    // 2. Select Font/Profile based on content fit (only for 58mm)
+    
     let useCondensed = false;
-    let P = getPrinterProfile(printerSize, false); // Try Normal First
-
+    let P = getPrinterProfile(printerSize, false); 
     if (printerSize === '58mm') {
-        const spacer = 4; // Spaces between cols
-        const serial = 2; // "1."
+        const spacer = 4;
+        const serial = 2; 
 
-        // Increase reserved space for Name to ensure we don't squeeze it too much in Normal font.
-        // If we can't give at least 10 chars to name, we should switch to Condensed.
+       
         const minSafeName = 10;
 
-        // Check if Normal Font (32 cols) can hold the values + safe name width
         const neededNormal = serial + minSafeName + Math.max(P.QTY, maxQtyLen) + Math.max(P.MRP, maxMrpLen) + Math.max(P.RATE, maxRateLen) + Math.max(P.AMT, maxAmtLen) + spacer;
 
         if (neededNormal > 32) {
             useCondensed = true;
-            P = getPrinterProfile(printerSize, true); // Switch to Condensed (42 cols)
+            P = getPrinterProfile(printerSize, true); 
         }
     }
 
-    // 3. Finalize Column Widths dynamic to content
-    // We want to give maximum space to Item Name
-
-    // 3. Finalize Column Widths
-    // Use strict minimums for readability
+ 
     const minQty = 3;
     const minMrp = 3;
     const minRate = 4;
@@ -66,26 +59,21 @@ export function buildReceipt(order: Order, printerSize: PrinterSize,
     const spaceRate = Math.max(minRate, maxRateLen);
     const spaceAmt = Math.max(minAmt, maxAmtLen);
 
-    // Dynamic Spacers logic
-    // Standard: 1 space between columns (4 total gaps)
-    // If layout is tight on 58mm, we set gaps to 0.
+    
     let colSpacer = 1;
-    let serialWidth = 3; // "1. "
+    let serialWidth = 3;
 
     let totalFixed = serialWidth + spaceQty + spaceMrp + spaceRate + spaceAmt + (4 * colSpacer);
     let remainingForItem = P.WIDTH - totalFixed;
 
     // Emergency Space Saving
     if (remainingForItem < 6) {
-        // Not enough space for name!
-        // 1. Remove spacers
+
         colSpacer = 0;
         totalFixed = serialWidth + spaceQty + spaceMrp + spaceRate + spaceAmt; // 0 gaps
         remainingForItem = P.WIDTH - totalFixed;
 
-        // 2. If still tight, clamp name to 6 and suffer line overflow (better than vertical crash)
-        // Or actually, if we clamp to 6, the line WILL overflow P.WIDTH which is bad.
-        // But preventing wrapText(1) is critical.
+      
     }
 
     P.ITEM = Math.max(6, remainingForItem);
@@ -160,10 +148,10 @@ export function buildReceipt(order: Order, printerSize: PrinterSize,
         // DEFAULT HEADER
         r += center + 'NO.21, SVJPOS,\n';
         r += center + 'SURANDAI,\n';
-        r += center + 'Ph:6385532772,9444391913\n';
     }
 
-    r += center + b_on + '======== PAY TM BILL ========\n' + b_off + left + '\n';
+    r += `${center + b_on}======== PAYMENT RECEIPT ========\n${b_off}${left}\n`;
+
 
     // Bill Info
     const date = new Date(order.date);
@@ -288,8 +276,9 @@ export function buildReceipt(order: Order, printerSize: PrinterSize,
     r += col('Total Items:', P.WIDTH - 10) + col(order.items.length.toString(), 10, 'right') + '\n';
     r += LINE;
 
-    // Paymode 
-    const pmTxt = `Paymode - ${order.payment}`;
+    // Payment Mode 
+    const paymentMode = (order.payment || 'CASH').toUpperCase();
+    const pmTxt = `PAYMENT MODE - ${paymentMode}`;
     r += b_on + col(pmTxt, P.WIDTH - 12) + col(netAmount.toFixed(2), 12, 'right') + b_off + '\n';
 
     const hasGst = order.gstSummary && order.gstSummary.some(g => g.sgst + g.cgst > 0);

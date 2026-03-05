@@ -638,8 +638,9 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
             <View style={styles.searchInputContainer}>
               <Icon name="magnify" size={20} color={COLORS.textSecondary} />
               <TextInput
-                style={styles.searchInput}
+                style={[styles.searchInput, { includeFontPadding: false }]}
                 placeholder="Search by name or code..."
+                placeholderTextColor={COLORS.textSecondary}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
@@ -825,9 +826,10 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Quantity</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { includeFontPadding: false }]}
                   value={quantity}
                   keyboardType="numeric"
+                  placeholderTextColor={COLORS.textSecondary}
                   onChangeText={(text) => {
                     const qty = parseFloat(text) || 0;
                     const stock = selectedItem?.stock ?? Infinity;
@@ -844,10 +846,11 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Rate</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { includeFontPadding: false }]}
                   value={rate}
                   onChangeText={setRate}
                   keyboardType="numeric"
+                  placeholderTextColor={COLORS.textSecondary}
                 />
               </View>
             </View>
@@ -910,9 +913,10 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
                       <Icon name="minus" size={16} color={COLORS.primary} />
                     </TouchableOpacity>
                     <TextInput
-                      style={styles.qtyValue}
+                      style={[styles.qtyValue, { includeFontPadding: false }]}
                       value={String(item.quantity)}
                       keyboardType="numeric"
+                      placeholderTextColor={COLORS.textSecondary}
                       onChangeText={(text) => {
                         const qty = parseFloat(text) || 0;
 
@@ -1137,22 +1141,24 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Quantity</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { includeFontPadding: false }]}
                   value={editQty}
                   onChangeText={setEditQty}
                   keyboardType="numeric"
                   placeholder="0"
+                  placeholderTextColor={COLORS.textSecondary}
                 />
               </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Rate (Each)</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { includeFontPadding: false }]}
                   value={editRate}
                   onChangeText={setEditRate}
                   keyboardType="numeric"
                   placeholder="0.00"
+                  placeholderTextColor={COLORS.textSecondary}
                 />
               </View>
 
@@ -1242,17 +1248,11 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
               showsVerticalScrollIndicator={false}
             >
               {previewText.split('\n').map((line, index) => {
-                let text = line;
-                let isBold = false;
-
-                if (text.includes('[B]')) {
-                  isBold = true;
-                  text = text.replace('[B]', '');
-                }
-                if (text.includes('[/B]')) {
-                  isBold = false;
-                  text = text.replace('[/B]', '');
-                }
+                // If line has [B], it's a bold line — strip both tags for display
+                const isBold = line.includes('[B]');
+                const text = line
+                  .replace(/\[B\]/g, '')
+                  .replace(/\[\/B\]/g, '');
 
                 return (
                   <Text

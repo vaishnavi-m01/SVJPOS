@@ -125,10 +125,11 @@ const CategoryMasterScreen: React.FC<CategoryMasterScreenProps> = ({ navigation 
                     <Text style={styles.inputLabel}>{editingId ? 'Edit Category' : 'New Category'}</Text>
                     <View style={styles.inputRow}>
                         <TextInput
-                            style={styles.input}
+                            style={[styles.input, { includeFontPadding: false }]}
                             value={newCategoryName}
                             onChangeText={setNewCategoryName}
                             placeholder="Enter category name"
+                            placeholderTextColor={COLORS.textSecondary}
                             autoFocus
                             maxLength={25}
                         />

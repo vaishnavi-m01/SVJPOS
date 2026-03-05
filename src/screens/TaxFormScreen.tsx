@@ -180,13 +180,14 @@ const TaxFormScreen: React.FC<Props> = ({ navigation, route }) => {
                         <View style={[styles.inputContainer, errors.name && styles.inputError]}>
                             <Icon name="receipt" size={20} color={errors.name ? COLORS.danger : COLORS.textSecondary} />
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { includeFontPadding: false }]}
                                 value={name}
                                 onChangeText={(text) => {
                                     setName(text);
                                     if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
                                 }}
                                 placeholder="e.g. VAT"
+                                placeholderTextColor={COLORS.textSecondary}
                                 maxLength={30}
                             />
                         </View>
@@ -199,7 +200,7 @@ const TaxFormScreen: React.FC<Props> = ({ navigation, route }) => {
                         <View style={[styles.inputContainer, errors.rate && styles.inputError]}>
                             <Icon name="percent" size={20} color={errors.rate ? COLORS.danger : COLORS.textSecondary} />
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { includeFontPadding: false }]}
                                 value={rate}
                                 onChangeText={text => {
                                     // allow only numbers and decimal
@@ -216,6 +217,7 @@ const TaxFormScreen: React.FC<Props> = ({ navigation, route }) => {
                                     if (errors.rate) setErrors(prev => ({ ...prev, rate: '' }));
                                 }}
                                 placeholder="e.g. 5 or 5.50"
+                                placeholderTextColor={COLORS.textSecondary}
                                 keyboardType="decimal-pad"
                                 maxLength={6} // 100.00
                             />
@@ -230,10 +232,11 @@ const TaxFormScreen: React.FC<Props> = ({ navigation, route }) => {
                         <View style={[styles.inputContainer, styles.textAreaContainer]}>
                             <Icon name="text" size={20} color={COLORS.textSecondary} style={styles.textAreaIcon} />
                             <TextInput
-                                style={[styles.input, styles.textArea]}
+                                style={[styles.input, styles.textArea, { includeFontPadding: false }]}
                                 value={description}
                                 onChangeText={setDescription}
                                 placeholder="Optional"
+                                placeholderTextColor={COLORS.textSecondary}
                                 maxLength={50}
                                 multiline
                                 numberOfLines={5}

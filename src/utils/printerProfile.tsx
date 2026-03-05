@@ -23,7 +23,7 @@ export function getPrinterProfile(size: PrinterSize, useCondensed: boolean = fal
     if (size === '80mm') {
         return {
             WIDTH: 48,
-            ITEM: 7, // Dynamic in main logic, this is just a safe default
+            ITEM: 7, 
             QTY: 4,
             MRP: 11,
             RATE: 11,

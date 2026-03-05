@@ -117,7 +117,7 @@ const StoreDetailsScreen = () => {
                         <View style={[styles.inputContainer, errors.name && styles.inputError]}>
                             <Icon name="domain" size={20} color={errors.name ? COLORS.danger : COLORS.textSecondary} style={styles.inputIcon} />
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { includeFontPadding: false }]}
                                 value={store.name}
                                 onChangeText={(text) => {
                                     setStore({ ...store, name: text });
@@ -136,7 +136,7 @@ const StoreDetailsScreen = () => {
                         <View style={[styles.inputContainer, styles.textAreaContainer, errors.location && styles.inputError]}>
                             <Icon name="map-marker" size={20} color={errors.location ? COLORS.danger : COLORS.textSecondary} style={[styles.inputIcon, { marginTop: 12 }]} />
                             <TextInput
-                                style={[styles.input, styles.textArea]}
+                                style={[styles.input, styles.textArea, { includeFontPadding: false }]}
                                 value={store.location}
                                 onChangeText={(text) => {
                                     setStore({ ...store, location: text });
@@ -158,7 +158,7 @@ const StoreDetailsScreen = () => {
                         <View style={[styles.inputContainer, errors.phone && styles.inputError]}>
                             <Icon name="phone" size={20} color={errors.phone ? COLORS.danger : COLORS.textSecondary} style={styles.inputIcon} />
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { includeFontPadding: false }]}
                                 value={store.phone}
                                 onChangeText={(text) => {
                                     const cleaned = text.replace(/[^0-9]/g, '');
